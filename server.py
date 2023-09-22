@@ -7,7 +7,7 @@ from flask_cors import CORS
 import traceback
 
 from werkzeug.datastructures import RequestCacheControl
-
+import time
 import pandas as pd
 import threading
 import json
@@ -22,17 +22,15 @@ saved_filename = "video_records.csv"
 stats_folder = "./stats_data"
 
 
-dataframe_lock = threading.Lock()
+stats_df_lock = threading.Lock()
 
 def append_to_csv(data,csv_file):
-    with dataframe_lock:
-        if os.path.exists(csv_file):
-            df = pd.read_csv(csv_file)
-        else:
-            df = pd.DataFrame(columns=data.keys())
-
-        df = df.append(data, ignore_index=True)
-        df.to_csv(csv_file, index=False)
+    df = pd.DataFrame(columns=data.keys())
+    df = df.append(data, ignore_index=True)
+    if os.path.exists(csv_file):
+        df.to_csv(csv_file, index=False,mode="a",header=False)
+    else:
+        df.to_csv(csv_file, index=False,mode="w",header=True)
         
 
 @app.route('/', methods=['GET'])
@@ -45,8 +43,10 @@ def home():
 def store_video_param():
     try:
         data = request.json
+        data["epoch_time_ms"] = int(time.time() * 1000)
         filename = data["video_id_and_cpn"].replace(" / ","_").replace(" ","%")+".csv"
-        append_to_csv(data, f"{stats_folder}/{filename}")
+        with stats_df_lock:
+            append_to_csv(data, f"{stats_folder}/{filename}")
         return "OK"
     except Exception as e:
         traceback.print_exc()
