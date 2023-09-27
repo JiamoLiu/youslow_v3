@@ -34,8 +34,8 @@ def home():
 @app.route('/report', methods= ['GET']) # Since it is post, you can't see anything unless info is present
 def store_video_param():
     try:
-        # raw_data = request.get_data(as_text=True)
-        # temp = dict(request.args)
+        raw_data = request.get_data(as_text=True)
+        temp = dict(request.args)
         # temp["raw"] = raw_data
         # temp["loaded_fractions"] = request.get_json()["bufferFraction"]
         # temp["playback_fractions"] = request.get_json()["playbackSeries"]
@@ -56,7 +56,7 @@ def store_video_param():
         #     df.to_csv(saved_filename,header=False, mode='a', index=False,encoding='utf-8')
         # else:
         #     df.to_csv(saved_filename,index=False,encoding='utf-8')
-        return jsonify({"message": "Report received successfully"})
+        return jsonify(temp)
     except:
         traceback.print_exc()
         return "ERROR!"
