@@ -9,6 +9,7 @@ const stats_url = "http://localhost:34543/report";
 const report_time = 250;
 var currentURL=null;
 var player = null;
+var extension_loaded_time = Date.now();
 
 function postReport(url, jsonData) {
     // this function sends json data to report server
@@ -54,6 +55,7 @@ function onStateChange(event) {
         {
             url: currentURL,
             current_time: player.currentTime,
+            extension_loaded_time:extension_loaded_time,
             new_state: event,
         }
     );
@@ -66,6 +68,7 @@ function onPlaybackQualityChange(event) {
         {
             url: currentURL,
             current_time: player.currentTime,
+            extension_loaded_time:extension_loaded_time,
             new_quality: event,
         }
     );
@@ -83,6 +86,7 @@ function sendStats() {
         videoHeight : player.videoHeight,
         videoWidth : player.videoWidth,
         current_time: player.currentTime,
+        extension_loaded_time:extension_loaded_time,
         url: currentURL,
     }
 
