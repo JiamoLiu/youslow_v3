@@ -37,16 +37,40 @@ def append_to_csv(data,csv_file):
 def home():
     return "<h1>Youslow Server!.</p>"
 
+@app.route('/state', methods= ['POST'])
+def store_state_change():
+    return "OK"
+
+
+@app.route('/quality', methods= ['POST'])
+def store_quality_change():
+    return "OK"
+
+def save_youtube_stats(data):
+    data["epoch_time_ms"] = int(time.time() * 1000)
+    filename = "youtube"+"_"+data["video_id_and_cpn"].replace(" / ","_").replace(" ","%")+".csv"
+    with stats_df_lock:
+        append_to_csv(data, f"{stats_folder}/{filename}")
+
+def save_netflix_stats(data):
+    data["epoch_time_ms"] = int(time.time() * 1000)
+    id = data["url"].split("/")[-1]
+    filename = "netflix"+"_"+id.replace(" / ","_").replace(" ","%")+".csv"
+    with stats_df_lock:
+        append_to_csv(data, f"{stats_folder}/{filename}")
 
 
 @app.route('/report', methods= ['POST'])
 def store_video_param():
+    data = request.json
+    platform = data["platform"]
     try:
-        data = request.json
-        data["epoch_time_ms"] = int(time.time() * 1000)
-        filename = data["video_id_and_cpn"].replace(" / ","_").replace(" ","%")+".csv"
-        with stats_df_lock:
-            append_to_csv(data, f"{stats_folder}/{filename}")
+        if (platform == "youtube"):
+            save_youtube_stats(data)
+        elif (platform == "netflix"):
+            save_netflix_stats(data)
+
+
         return "OK"
     except Exception as e:
         traceback.print_exc()

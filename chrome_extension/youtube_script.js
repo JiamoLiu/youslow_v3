@@ -7,6 +7,7 @@ const quality_change_url = "http://localhost:34543/quality";
 const state_change_url = "http://localhost:34543/state";
 const stats_url = "http://localhost:34543/report";
 const report_time = 250;
+const platform = "youtube"
 
 function postReport(url, jsonData) {
     // this function sends json data to report server
@@ -19,28 +20,29 @@ function postReport(url, jsonData) {
     xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
 
     // Define a callback for when the request completes successfully
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            // Successful response
-            if (successCallback && typeof successCallback === "function") {
-                successCallback(xhr.responseText);
-            }
-        } 
-        else {
-        // Error response
-            if (errorCallback && typeof errorCallback === "function") {
-                errorCallback(xhr.status, xhr.statusText);
-            }
-        }
-    };
-    // Handle network errors
-    xhr.onerror = function () {
-        if (errorCallback && typeof errorCallback === "function") {
-            errorCallback(xhr.status, "Network Error");
-        }
-    };
+    // xhr.onload = function () {
+    //     if (xhr.status === 200) {
+    //         // Successful response
+    //         if (successCallback && typeof successCallback === "function") {
+    //             successCallback(xhr.responseText);
+    //         }
+    //     } 
+    //     else {
+    //     // Error response
+    //         if (errorCallback && typeof errorCallback === "function") {
+    //             errorCallback(xhr.status, xhr.statusText);
+    //         }
+    //     }
+    // };
+    // // Handle network errors
+    // xhr.onerror = function () {
+    //     if (errorCallback && typeof errorCallback === "function") {
+    //         errorCallback(xhr.status, "Network Error");
+    //     }
+    // };
 
     // Send the JSON data as the request body
+    jsonData.platform = "youtube"
     xhr.send(JSON.stringify(jsonData));
 }
 
