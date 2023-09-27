@@ -80,17 +80,38 @@ function onPlaybackQualityChange(event) {
 function sendStats() {
     // For netflix, u need to press ctrl+shift+alt+Q to get that screen
 
+    if (document.getElementsByClassName("player-info").length == 0){
+        return
+    }
+    
+
+
+    let inputString = document.getElementsByClassName("player-info")[0].children[0].value
+
+    var lines = inputString.split('\n');
+
+    // Create an empty object to store the key-value pairs
+    var jsonObject = {};
+    
+    // Iterate through the lines and extract key-value pairs
+    lines.forEach(function(line) {
+        var parts = line.split(':');
+        if (parts.length === 2) {
+            var key = parts[0].trim();
+            var value = parts[1].trim();
+            jsonObject[key] = value;
+        }
+    });
+    
+    jsonObject.stats_for_nerds = player.videoHeight
+    jsonObject.videoWidth = player.videoWidth
+    jsonObject.current_time = player.currentTime
+    jsonObject.extension_loaded_time = extension_loaded_time,
+    jsonObject.url = currentURL
 
     // this function is executed every X ms and reports current statistics
-    let stats_for_nerds = {
-        videoHeight : player.videoHeight,
-        videoWidth : player.videoWidth,
-        current_time: player.currentTime,
-        extension_loaded_time:extension_loaded_time,
-        url: currentURL,
-    }
 
-    postReport(stats_url, stats_for_nerds);
+    postReport(stats_url, jsonObject);
 }
 
 // wait until player is ready
