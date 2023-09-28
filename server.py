@@ -26,7 +26,7 @@ stats_df_lock = threading.Lock()
 
 def append_to_csv(data,csv_file):
     df = pd.DataFrame(columns=data.keys())
-    df = pd.concat([df, pd.DataFrame([data])], ignore_index=True)
+    df = df._append([df, pd.DataFrame([data])], ignore_index=True)
     if os.path.exists(csv_file):
         df.to_csv(csv_file, index=False,mode="a",header=False)
     else:
