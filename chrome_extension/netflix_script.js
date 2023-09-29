@@ -103,7 +103,7 @@ function sendStats() {
         }
     });
     
-    jsonObject.stats_for_nerds = player.videoHeight
+    jsonObject.videoHeight = player.videoHeight
     jsonObject.videoWidth = player.videoWidth
     jsonObject.current_time = player.currentTime
     jsonObject.extension_loaded_time = extension_loaded_time,
