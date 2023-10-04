@@ -1,5 +1,6 @@
 *.csv
 /YouSlow
 /stats_data
-chromedriver.exe
-serverk.py
+/YouTube
+/.vscode
+ublock.crx
