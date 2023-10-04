@@ -1,6 +1,5 @@
 *.csv
 /YouSlow
 /stats_data
-/YouTube
 /.vscode
 ublock.crx
