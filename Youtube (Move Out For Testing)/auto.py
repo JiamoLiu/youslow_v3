@@ -22,7 +22,8 @@ urls = ['https://www.youtube.com/watch?v=GwaRztMaoY0',
 s = Service(r"./chromedriver.exe")
 chromium_executable_path = 'C:/Users/khali/Chromium/chrome.exe'
 chrome_options = Options()
-chrome_options.add_argument("--load-extension=C:/Users/khali/OneDrive/Desktop/Code/Research/YTExtension/youslow_v3/YouSlow");
+chrome_options.add_extension('./ublock.crx')
+chrome_options.add_argument("--load-extension=C:/Users/khali/OneDrive/Desktop/Code/Research/YTExtension/youslow_v3/YouSlow")
 chrome_options.binary_location = chromium_executable_path
 
 
