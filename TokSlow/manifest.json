@@ -1,0 +1,23 @@
+{
+  "name": "TokShow Kell",
+  "description": "",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": [
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.tiktok.com/*"
+  ],
+  "content_scripts": [{
+    "matches": [
+      "https://www.tiktok.com/*"
+    ],
+    "js": ["content.js"],
+    "run_at": "document_end"
+  }],
+  "web_accessible_resources": [{
+    "resources": ["script.js"],
+    "matches": ["<all_urls>"]
+  }]
+}

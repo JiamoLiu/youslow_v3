@@ -36,19 +36,20 @@ def append_to_csv(data,csv_file):
 
 @app.route('/', methods=['GET'])
 def home():
-    return "<h1>Youslow Server!.</p>"
+    return "<h1> TokSlow Server!</p>"
 
 
 
 @app.route('/report', methods= ['POST'])
 def store_video_param():
     try:
-        data = dict(request.json)
-        data["epoch_time_ms"] = int(time.time() * 1000)
-        filename = data["video_id_and_cpn"].replace(" / ","_").replace(" ","%")+".csv"
-        print(data)
-        with stats_df_lock:
-            append_to_csv(data, f"{stats_folder}/{filename}")
+        # data = dict(request.json)
+        # data["epoch_time_ms"] = int(time.time() * 1000)
+        # filename = data["video_id_and_cpn"].replace(" / ","_").replace(" ","%")+".csv"
+        # print(data)
+        print("wowowo")
+        # with stats_df_lock:
+        #     append_to_csv(data, f"{stats_folder}/{filename}")
         return "OK"
     except Exception as e:
         traceback.print_exc()
