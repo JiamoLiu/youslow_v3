@@ -1,3 +1,4 @@
 *.csv
 !netflix_titles.csv
 creds.py
+.pem
