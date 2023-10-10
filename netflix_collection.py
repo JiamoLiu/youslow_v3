@@ -11,11 +11,37 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 import creds
 from selenium.webdriver.common.action_chains import ActionChains
+import json
+import random
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+import threading
+from subprocess import Popen, PIPE
+import signal
+import argparse
+import pandas as pd
+import sys
+from datetime import datetime
 
 email = creds.username
 pwd = creds.password
-movie_id = "70196252"
 home_page_url = "https://www.netflix.com/browse"
+intface = "enp11s0"
+
+
+def get_filename(link):
+    return "./production/traces/"+link.split("/")[-1] + "."+str(time.time())
+
+
+def capture_live_packets(network_interface, filename, stop):
+    output = filename+".pcap"
+
+    process = Popen(['tshark', '-i', network_interface,
+                    '-w', output, "-s", "400"])
+    # stdout, stderr = process.communicate()
+
+    while (stop() == False):
+        pass
+    process.send_signal(signal.SIGINT)
 
 
 def clear_cookies(driver):
@@ -59,12 +85,18 @@ def try_to_turn_on_stats(driver):
 
 def try_to_click_play(driver):
     wait_until_present(
-        driver, "/html/body/div[1]/div/div/div[1]/div/div/div/div/div/video")
+        driver, "/html/body/div[1]/div/div/div[1]/div/div/div/div/div/video", timeout=60)
     paused = driver.execute_script(
         r"""return document.getElementsByTagName("video")[0].paused""")
     if (paused):
-        driver.find_element(
-            "xpath", '/html/body/div[1]/div/div/div[1]').click()
+        print("paused!!!")
+        try:
+            wait_until_clickable(
+                driver, r"""/html/body/div[1]/div/div/div[1]/div/div[2]/div[2]/div/div[2]/button""", timeout=60)
+            driver.find_element(
+                "xpath", r"""/html/body/div[1]/div/div/div[1]/div/div[2]/div[2]/div/div[2]/button""").click()
+        except:
+            pass
 
 
 def log_in(driver):
@@ -94,13 +126,36 @@ def watch_movie(driver, movie_id):
     driver.get(f"https://www.netflix.com/watch/{movie_id}")
 
 
-def main():
+def get_working_url(url_df, num_iteration_of_videos=5):
+    session_min = url_df["session_count"].min()
+
+    should_stop = False
+    if (session_min >= num_iteration_of_videos):
+        should_stop = True
+        return None, should_stop
+    else:
+        urls = list(url_df.query(
+            "session_count == {}".format(session_min))["video_id"])
+        chosen = random.choice(urls)
+        return chosen, should_stop
+
+
+def record_xhr_requests(driver, proto, pcap_filename):
+    logs_raw = driver.get_log("performance")
+    logs = [json.loads(lr["message"])["message"] for lr in logs_raw]
+    with open(f'{pcap_filename}_{proto}.json', 'w') as outfile:
+        json.dump(logs, outfile)
+
+
+def collect(movie_id, proto="TCP"):
     options = webdriver.ChromeOptions()
-    proto = "TCP"
     # options = webdriver.ChromeOptions()
     # options.add_argument("--headless")
     # print(os.path.exists())
-    options.add_argument("--disable-logging")
+    desired_capabilities = DesiredCapabilities.CHROME
+    desired_capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
+    desired_capabilities["pageLoadStrategy"] = "none"
+
     options.add_extension(f'{os.getcwd()}/Chrome extension.crx')
     # Needs to be big enough to get all the resolutions
     options.add_argument("--window-size=2000,3555")
@@ -108,21 +163,70 @@ def main():
         options.add_argument("--disable-quic")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--no-sandbox")
-
-    # stopthreads =False
-    # th = threading.Thread(target=capture_live_packets, args=(url,intface,lambda: stopthreads,))
+    options.add_argument("--disable-component-update")
 
     driver = webdriver.Chrome(
-        chrome_options=options, executable_path="/usr/bin/chromedriver_linux64/chromedriver")
+        chrome_options=options, executable_path="/usr/bin/chromedriver_linux64/chromedriver", desired_capabilities=desired_capabilities)
     clear_cookies(driver)
     log_in(driver)
-    # time.sleep(100000000)
+    stopthreads = False
+    url = f"https://www.netflix.com/watch/{movie_id}"
+    pcap_filename = get_filename(url)
+    th = threading.Thread(target=capture_live_packets,
+                          args=(intface, pcap_filename, lambda: stopthreads,))
+
+    th.start()
+    time.sleep(3)
+
     watch_movie(driver, movie_id)
-    try_to_turn_on_stats(driver)
-    time.sleep(5)
     try_to_click_play(driver)
-    time.sleep(1000000)
+    try_to_turn_on_stats(driver)
+
+    time.sleep(180)
+    record_xhr_requests(driver, proto, pcap_filename)
+    driver.close()
+    stopthreads = True
+    th.join()
+
+
+def increment_session_count(working_urls, video_id):
+    working_urls.loc[working_urls["video_id"]
+                     == video_id, "session_count"] += 1
+    working_urls.to_csv(working_url_file)
+
+
+def record_session_time(start_time, end_time, proto, session_pair_id):
+    data = pd.DataFrame([[start_time, end_time, proto, session_pair_id]])
+    data.columns = ["start_time", "end_time", "protocol", "session_pair_id"]
+    data["start_time"] = data["start_time"].astype(str)
+    data["end_time"] = data["end_time"].astype(str)
+    filename = "sesssion_start_end_time.csv"
+    if (os.path.isfile(filename)):
+        data.to_csv(filename, mode="a", header=False, index=False)
+    else:
+        data.to_csv(filename, index=False)
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--filename', action='store')
+    args = parser.parse_args()
+    working_url_file = args.filename
+    working_urls = pd.read_csv(working_url_file)[
+        ["category", "video_id", "session_count"]]
+    session_pair_id = 1
+
+    while True:
+        movie_id, should_stop = get_working_url(working_urls, 5)
+        print(movie_id)
+
+        if (should_stop):
+            sys.exit()
+
+        start_time = datetime.now()
+        collect(movie_id)
+        increment_session_count(working_urls, movie_id)
+        end_time = datetime.now()
+        record_session_time(start_time, end_time, "TCP", session_pair_id)
+        time.sleep(10)
+        session_pair_id += 1
