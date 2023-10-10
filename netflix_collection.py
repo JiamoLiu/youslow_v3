@@ -150,46 +150,59 @@ def record_xhr_requests(driver, proto, pcap_filename):
 
 
 def collect(movie_id, proto="TCP"):
-    options = webdriver.ChromeOptions()
-    # options = webdriver.ChromeOptions()
-    # options.add_argument("--headless")
-    # print(os.path.exists())
-    desired_capabilities = DesiredCapabilities.CHROME
-    desired_capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
-    desired_capabilities["pageLoadStrategy"] = "none"
+    success = False
+    try:
+        options = webdriver.ChromeOptions()
+        # options = webdriver.ChromeOptions()
+        # options.add_argument("--headless")
+        # print(os.path.exists())
+        desired_capabilities = DesiredCapabilities.CHROME
+        desired_capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
+        desired_capabilities["pageLoadStrategy"] = "none"
 
-    options.add_extension(f'{os.getcwd()}/Chrome extension.crx')
-    # Needs to be big enough to get all the resolutions
-    options.add_argument("--window-size=2000,3555")
-    if (proto == "TCP"):
-        options.add_argument("--disable-quic")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-component-update")
+        options.add_extension(f'{os.getcwd()}/Chrome extension.crx')
+        # Needs to be big enough to get all the resolutions
+        options.add_argument("--window-size=2000,3555")
+        if (proto == "TCP"):
+            options.add_argument("--disable-quic")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-component-update")
 
-    driver = webdriver.Chrome(
-        chrome_options=options, executable_path="/usr/bin/chromedriver_linux64/chromedriver", desired_capabilities=desired_capabilities)
-    clear_cookies(driver)
-    log_in(driver)
-    stopthreads = False
-    url = f"https://www.netflix.com/watch/{movie_id}"
-    pcap_filename = get_filename(url)
-    th = threading.Thread(target=capture_live_packets,
-                          args=(intface, pcap_filename, lambda: stopthreads,))
+        driver = webdriver.Chrome(
+            chrome_options=options, executable_path="/usr/bin/chromedriver_linux64/chromedriver", desired_capabilities=desired_capabilities)
+        clear_cookies(driver)
+        log_in(driver)
+        stopthreads = False
+        url = f"https://www.netflix.com/watch/{movie_id}"
+        pcap_filename = get_filename(url)
+        th = threading.Thread(target=capture_live_packets,
+                              args=(intface, pcap_filename, lambda: stopthreads,))
 
-    th.start()
-    time.sleep(3)
+        th.start()
+        time.sleep(3)
 
-    movie_request_time = watch_movie(driver, movie_id)
-    try_to_click_play(driver)
-    try_to_turn_on_stats(driver)
+        movie_request_time = watch_movie(driver, movie_id)
+        try_to_click_play(driver)
+        try_to_turn_on_stats(driver)
 
-    time.sleep(180)
-    record_xhr_requests(driver, proto, pcap_filename)
-    driver.close()
-    stopthreads = True
-    th.join()
-    return movie_request_time
+        time.sleep(180)
+        record_xhr_requests(driver, proto, pcap_filename)
+        driver.close()
+        stopthreads = True
+        th.join()
+        success = True
+        return movie_request_time, success
+
+    except KeyboardInterrupt:
+        driver.close()
+        stopthreads = True
+        th.join()
+        success = True
+        return movie_request_time, success
+    except:
+        success = False
+        return None, success
 
 
 def increment_session_count(working_urls, video_id):
@@ -230,7 +243,10 @@ if __name__ == "__main__":
             sys.exit()
 
         start_time = datetime.now()
-        movie_request_time = collect(movie_id)
+        success = False
+        while (not success):
+            movie_request_time, success = collect(movie_id)
+
         increment_session_count(working_urls, movie_id)
         end_time = datetime.now()
         record_session_time(start_time, end_time, "TCP",
