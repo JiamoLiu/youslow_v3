@@ -2,3 +2,5 @@
 !netflix_titles.csv
 creds.py
 .pem
+production/traces/*.json
+*.pcap

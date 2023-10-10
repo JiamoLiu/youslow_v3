@@ -123,7 +123,9 @@ def log_in(driver):
 
 
 def watch_movie(driver, movie_id):
+    movie_request_time = datetime.now()
     driver.get(f"https://www.netflix.com/watch/{movie_id}")
+    return movie_request_time
 
 
 def get_working_url(url_df, num_iteration_of_videos=5):
@@ -178,7 +180,7 @@ def collect(movie_id, proto="TCP"):
     th.start()
     time.sleep(3)
 
-    watch_movie(driver, movie_id)
+    movie_request_time = watch_movie(driver, movie_id)
     try_to_click_play(driver)
     try_to_turn_on_stats(driver)
 
@@ -187,6 +189,7 @@ def collect(movie_id, proto="TCP"):
     driver.close()
     stopthreads = True
     th.join()
+    return movie_request_time
 
 
 def increment_session_count(working_urls, video_id):
@@ -195,11 +198,14 @@ def increment_session_count(working_urls, video_id):
     working_urls.to_csv(working_url_file)
 
 
-def record_session_time(start_time, end_time, proto, session_pair_id):
-    data = pd.DataFrame([[start_time, end_time, proto, session_pair_id]])
-    data.columns = ["start_time", "end_time", "protocol", "session_pair_id"]
+def record_session_time(start_time, end_time, proto, session_pair_id, movie_request_time):
+    data = pd.DataFrame(
+        [[start_time, end_time, proto, session_pair_id, movie_request_time]])
+    data.columns = ["start_time", "end_time", "protocol",
+                    "session_pair_id", "movie_request_time"]
     data["start_time"] = data["start_time"].astype(str)
     data["end_time"] = data["end_time"].astype(str)
+    data["movie_request_time"] = data["movie_request_time"].astype(str)
     filename = "sesssion_start_end_time.csv"
     if (os.path.isfile(filename)):
         data.to_csv(filename, mode="a", header=False, index=False)
@@ -224,9 +230,10 @@ if __name__ == "__main__":
             sys.exit()
 
         start_time = datetime.now()
-        collect(movie_id)
+        movie_request_time = collect(movie_id)
         increment_session_count(working_urls, movie_id)
         end_time = datetime.now()
-        record_session_time(start_time, end_time, "TCP", session_pair_id)
-        time.sleep(10)
+        record_session_time(start_time, end_time, "TCP",
+                            session_pair_id, movie_request_time)
+        time.sleep(30)
         session_pair_id += 1
