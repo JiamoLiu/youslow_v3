@@ -251,7 +251,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     working_url_file = args.filename
 
-    working_url_file = "working_urls_netflix.csv"
     working_urls = pd.read_csv(working_url_file)[
         ["category", "video_id", "session_count"]]
     session_pair_id = 1
@@ -259,7 +258,6 @@ if __name__ == "__main__":
     while True:
         movie_id, should_stop = get_working_url(working_urls, 5)
         print(movie_id)
-        movie_id = "4515151"
         if (should_stop):
             sys.exit()
 
