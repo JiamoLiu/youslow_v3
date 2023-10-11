@@ -149,8 +149,21 @@ def record_xhr_requests(driver, proto, pcap_filename):
         json.dump(logs, outfile)
 
 
+def error_present(driver):
+    try:
+        error_line = driver.find_element(
+            "xpath", "/html/body/div[1]/div/div/div[1]/div/div/div[2]/div/div[2]/span").text
+    except:
+        return False
+    if ("Error Code" in error_line):
+        return True
+    else:
+        return False
+
+
 def collect(movie_id, proto="TCP"):
     success = False
+    has_error = False
     try:
         options = webdriver.ChromeOptions()
         # options = webdriver.ChromeOptions()
@@ -169,6 +182,7 @@ def collect(movie_id, proto="TCP"):
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-component-update")
 
+        options.binary_location = "/home/jiamo/Downloads/chrome-linux64/chrome"
         driver = webdriver.Chrome(
             chrome_options=options, executable_path="/usr/bin/chromedriver_linux64/chromedriver", desired_capabilities=desired_capabilities)
         clear_cookies(driver)
@@ -192,17 +206,21 @@ def collect(movie_id, proto="TCP"):
         stopthreads = True
         th.join()
         success = True
-        return movie_request_time, success
+        return movie_request_time, success, has_error
 
     except KeyboardInterrupt:
         driver.close()
         stopthreads = True
         th.join()
         success = True
-        return movie_request_time, success
+        return movie_request_time, success, has_error
     except:
         success = False
-        return None, success
+        has_error = error_present(driver)
+        driver.close()
+        stopthreads = True
+        th.join()
+        return None, success, has_error
 
 
 def increment_session_count(working_urls, video_id):
@@ -227,10 +245,13 @@ def record_session_time(start_time, end_time, proto, session_pair_id, movie_requ
 
 
 if __name__ == "__main__":
+    has_error = False
     parser = argparse.ArgumentParser()
     parser.add_argument('--filename', action='store')
     args = parser.parse_args()
     working_url_file = args.filename
+
+    working_url_file = "working_urls_netflix.csv"
     working_urls = pd.read_csv(working_url_file)[
         ["category", "video_id", "session_count"]]
     session_pair_id = 1
@@ -238,14 +259,17 @@ if __name__ == "__main__":
     while True:
         movie_id, should_stop = get_working_url(working_urls, 5)
         print(movie_id)
-
+        movie_id = "4515151"
         if (should_stop):
             sys.exit()
 
         start_time = datetime.now()
         success = False
-        while (not success):
-            movie_request_time, success = collect(movie_id)
+        while (not success and not has_error):
+            movie_request_time, success, has_error = collect(movie_id)
+
+        if (has_error):
+            continue
 
         increment_session_count(working_urls, movie_id)
         end_time = datetime.now()
