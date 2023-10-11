@@ -219,7 +219,8 @@ def collect(movie_id, proto="TCP"):
         has_error = error_present(driver)
         driver.close()
         stopthreads = True
-        th.join()
+        if (th is not None):
+            th.join()
         return None, success, has_error
 
 
@@ -267,6 +268,7 @@ if __name__ == "__main__":
             movie_request_time, success, has_error = collect(movie_id)
 
         if (has_error):
+            increment_session_count(working_urls, movie_id)
             continue
 
         increment_session_count(working_urls, movie_id)
