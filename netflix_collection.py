@@ -246,7 +246,6 @@ def record_session_time(start_time, end_time, proto, session_pair_id, movie_requ
 
 
 if __name__ == "__main__":
-    has_error = False
     parser = argparse.ArgumentParser()
     parser.add_argument('--filename', action='store')
     args = parser.parse_args()
@@ -264,6 +263,7 @@ if __name__ == "__main__":
 
         start_time = datetime.now()
         success = False
+        has_error = False
         while (not success and not has_error):
             movie_request_time, success, has_error = collect(movie_id)
 
