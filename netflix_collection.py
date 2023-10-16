@@ -256,6 +256,7 @@ if __name__ == "__main__":
     session_pair_id = 1
 
     while True:
+        retries = 0
         movie_id, should_stop = get_working_url(working_urls, 5)
         print(movie_id)
         if (should_stop):
@@ -266,6 +267,9 @@ if __name__ == "__main__":
         has_error = False
         while (not success and not has_error):
             movie_request_time, success, has_error = collect(movie_id)
+            retries += 1
+            if (retries > 3):
+                continue
 
         if (has_error):
             increment_session_count(working_urls, movie_id)
