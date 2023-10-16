@@ -269,6 +269,7 @@ if __name__ == "__main__":
             movie_request_time, success, has_error = collect(movie_id)
             retries += 1
             if (retries > 3):
+                increment_session_count(working_urls, movie_id)
                 continue
 
         if (has_error):
