@@ -40,14 +40,14 @@ def home():
 
 
 
-@app.route('/report', methods= ['POST'])
+@app.route('/report', methods= ['POST', 'OPTIONS'])
 def store_video_param():
     try:
         # data = dict(request.json)
         # data["epoch_time_ms"] = int(time.time() * 1000)
         # filename = data["video_id_and_cpn"].replace(" / ","_").replace(" ","%")+".csv"
         # print(data)
-        print("wowowo")
+        print("Success")
         # with stats_df_lock:
         #     append_to_csv(data, f"{stats_folder}/{filename}")
         return "OK"
