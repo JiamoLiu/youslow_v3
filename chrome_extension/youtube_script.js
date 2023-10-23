@@ -82,25 +82,12 @@ function sendStats() {
     postReport(stats_url, stats_for_nerds);
 }
 
-// wait until player is ready
-while (!document.getElementById("movie_player")) {
-    if (Date.time() - extension_loaded_time > 500000)
-    {
-        break;
-    }
-
-    (async () => {
-        await new Promise(r => setTimeout(r, 100));
-    })();
-}
-
+let player= null
 const intervalId = setInterval(function () {
-    const player = document.getElementById("movie_player");
+    player = document.getElementById("movie_player");
     if (player) {
       clearInterval(intervalId); // Stop the interval once the element is found
       console.log("Video element is now present.");
-      currentURL = window.location.href;
-      // You can now work with the video element(s)
 
       player.addEventListener("onStateChange", onStateChange);
       player.addEventListener("onPlaybackQualityChange", onPlaybackQualityChange);
