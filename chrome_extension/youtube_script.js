@@ -8,6 +8,7 @@ const state_change_url = "http://localhost:34543/state";
 const stats_url = "http://localhost:34543/report";
 const report_time = 250;
 const platform = "youtube"
+const extension_loaded_time = Date.now();
 
 function postReport(url, jsonData) {
     // this function sends json data to report server
@@ -83,17 +84,29 @@ function sendStats() {
 
 // wait until player is ready
 while (!document.getElementById("movie_player")) {
+    if (Date.time() - extension_loaded_time > 500000)
+    {
+        break;
+    }
+
     (async () => {
         await new Promise(r => setTimeout(r, 100));
     })();
 }
 
-// get the player
-let player = document.getElementById("movie_player");
+const intervalId = setInterval(function () {
+    const player = document.getElementById("movie_player");
+    if (player) {
+      clearInterval(intervalId); // Stop the interval once the element is found
+      console.log("Video element is now present.");
+      currentURL = window.location.href;
+      // You can now work with the video element(s)
 
-// register callbacks on state and quality changes
-player.addEventListener("onStateChange", onStateChange);
-player.addEventListener("onPlaybackQualityChange", onPlaybackQualityChange);
+      player.addEventListener("onStateChange", onStateChange);
+      player.addEventListener("onPlaybackQualityChange", onPlaybackQualityChange);
 
-// report stats for nerds every X ms
-setInterval(sendStats, report_time);
+      setInterval(sendStats, report_time);
+    }
+  }, 100); // Check every 100 milliseconds
+
+
