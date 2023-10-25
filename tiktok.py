@@ -1,4 +1,3 @@
-from TikTokAPI import TikTokAPI
-import pandas as pd
-
-api = TikTokAPI.get_instance()
+dic = {"url": "https://www.tiktok.com/@asurazgod/video/7261884379645988098"}
+number = dic["url"].split('/')[-1]
+print(number)

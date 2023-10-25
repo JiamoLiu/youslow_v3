@@ -40,16 +40,16 @@ def home():
 
 
 
-@app.route('/report', methods= ['POST', 'OPTIONS'])
+@app.route('/report', methods= ['POST'])
 def store_video_param():
     try:
-        # data = dict(request.json)
+        data = dict(request.json)
         # data["epoch_time_ms"] = int(time.time() * 1000)
         # filename = data["video_id_and_cpn"].replace(" / ","_").replace(" ","%")+".csv"
-        # print(data)
-        print("Success")
-        # with stats_df_lock:
-        #     append_to_csv(data, f"{stats_folder}/{filename}")
+        filename = data["url"].split('/')[-1]
+        print(data)
+        with stats_df_lock:
+            append_to_csv(data, f"{stats_folder}/{filename}.csv")
         return "OK"
     except Exception as e:
         traceback.print_exc()
