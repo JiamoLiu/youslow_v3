@@ -1,6 +1,5 @@
 *.csv
 /YouSlow
-/stats_data
 /.vscode
-ublock.crx
+ublockcrx.crx
 chromedriver.exe
