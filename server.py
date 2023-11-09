@@ -6,12 +6,12 @@ from os import path
 from flask_cors import CORS
 import traceback
 
-from werkzeug.datastructures import RequestCacheControl
 import time
 import pandas as pd
 import threading
 import json
 import traceback
+from werkzeug.datastructures import RequestCacheControl
 app = flask.Flask(__name__)
 CORS(app)
 app.config["DEBUG"] = True
@@ -56,7 +56,7 @@ def store_video_param():
         return "ERROR"
 
 
-app.run(host = "localhost",port = 34543,debug=True)
+app.run(host = "0.0.0.0",port = 34543,debug=True)
 
 
 
