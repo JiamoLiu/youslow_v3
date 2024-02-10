@@ -1,3 +1,6 @@
-*.csv
+/pcaplogs
+/stats_data
+/chrome_extension
 /YouSlow
 /.vscode
+/misc
