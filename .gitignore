@@ -1,6 +1,8 @@
-/pcaplogs
-/stats_data
-/chrome_extension
-/YouSlow
+/chromefiles
 /.vscode
-/misc
+/data
+/tiktok_data
+bmp.log
+notes.txt
+server.log
+test.json
