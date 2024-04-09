@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from time import sleep
 from collections import OrderedDict
 
+chartState = "readyState"
 time = ["15", "60"]
 mbps = ["1Mbps", "2Mbps", "3Mbps", "4Mbps", "5Mbps"]
 runs = range(1, 6)  # Assuming runs from 1 to 5
@@ -24,7 +25,7 @@ def chart_state_all_conditions():
                     if filename.endswith(".csv"):
                         filepath = os.path.join(directory, filename)
                         df = pd.read_csv(filepath)
-                        states = df['networkState']
+                        states = df[chartState]
                         for state in states:
                             state_counts[s][state] += 1  # Direct tally without checking existence
 

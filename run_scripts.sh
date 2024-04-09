@@ -1,6 +1,8 @@
-DATA_RATES=("1" "2" "3" "4" "5")
+DATA_RATES=("1.1")
 TIKTOK_VIDEO_LENGTH=("15" "60")
-BASE_DIR="tiktok_data"
+BASE_DIR="satellite_data_2"
+# BASE_DIR="tiktok_data_2"
+# BASE_DIR="testing"
 
 mkdir -p "$BASE_DIR"
 
@@ -22,7 +24,8 @@ do
             mkdir -p "$RATE_DIR/QoS"
             mkdir -p "$RATE_DIR/QoE"
             mkdir -p "$RATE_DIR/HAR"
-            mm-link $TRACE_FILE $TRACE_FILE -- python3 tokgrab.py $RATE_DIR $LENGTH $RUN_LABEL $RATE
+            # mm-link $TRACE_FILE $TRACE_FILE -- python3 tokgrab.py $RATE_DIR $LENGTH $RUN_LABEL $RATE $BASE_DIR
+            python3 tokgrab.py $RATE_DIR $LENGTH $RUN_LABEL $RATE $BASE_DIR
             pkill java
         done
     done

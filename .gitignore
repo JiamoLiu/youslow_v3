@@ -2,6 +2,11 @@
 /.vscode
 /data
 /tiktok_data
+/photos
+/satellite_data
+/sattelite_data_2
+/testing
+/tiktok_data_2
 bmp.log
 notes.txt
 server.log

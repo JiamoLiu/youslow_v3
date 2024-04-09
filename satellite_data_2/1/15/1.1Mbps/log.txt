@@ -1,0 +1,6 @@
+Initalize
+Initalize
+SUCCESS DURING Run #1, Video #1, Mbps 1.1, Time 15 sec
+FAIL DURING Run #1, Video #1, Mbps 1.1, Time 15 sec
+SUCCESS DURING Run #1, Video #2, Mbps 1.1, Time 15 sec
+FAIL DURING Run #1, Video #2, Mbps 1.1, Time 15 sec

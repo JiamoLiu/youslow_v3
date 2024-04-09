@@ -14,8 +14,9 @@ import os
 import pandas as pd
 import json
 
-if len(sys.argv) !=5:
-    print("Usage: python3 tokgrab.py <arg1> <arg2> <arg3> <arg4>")
+if len(sys.argv) !=6:
+    print("Usage: python3 tokgrab.py <data_path> <vidlength> <run_label> <rate> <base_dir>")
+    exit(0)
 
 
 
@@ -25,7 +26,16 @@ data_path = sys.argv[1] #path right before QoE/QoS
 vidlength = sys.argv[2] #15 or 60
 run_label = sys.argv[3] #Numbered Run
 rate = sys.argv[4] #MBPS
-log_path = f"tiktok_data/{run_label}/{vidlength}/{rate}Mbps/log.txt"
+base_dir = sys.argv[5] #file storage
+limit_time = 0
+if vidlength == "15":
+    limit_time = 60
+elif vidlength == "60":
+    limit_time = 240
+else:
+    print("Error: Rate is not in scope")
+    exit(0)
+log_path = f"{base_dir}/{run_label}/{vidlength}/{rate}Mbps/log.txt"
 report_time = 0.25
 experiment = 0
 bandwidth = 0
@@ -116,40 +126,68 @@ if __name__ == "__main__":
     counter = 0
     success = 0
     tiktok_urls = read_urls_from_file(vidlength)
+    retry_attempt = 6
+    with open(log_path, 'a') as file:
+        file.write("Initalize"+"\n")
     for url in tiktok_urls:
-        try:    
-            driver.get(url)
-            while(True):
-                ended=False
-                send_data = driver.execute_script(js_analyze)
-                video_id = append_to_csv(send_data, counter)
-                time.sleep(report_time)
-                ended = driver.execute_script("return document.getElementsByTagName('video')[0].ended")                    
-                if(ended):
-                    record_xhr_requests(driver, video_id, counter)
-                    har_data = proxy.har
-                    HAR_FILE_PATH = f'{data_path}/HAR/run_{run_label}_vid_{counter}_{video_id}.har'
-                    with open(HAR_FILE_PATH, 'w') as har_file:
-                        json.dump(har_data, har_file, indent=4)
-                    response = f"SUCCESS DURING Run #{run_label}, Video #{counter}, Mbps {rate}, Time {vidlength} sec"
-                    print(response)
+        attempt = 1
+        counter += 1
+        while (attempt<retry_attempt):
+            try:    
+                driver.get(url)
+                start_time = time.time()
+                while(True):
+                    elapsed_time = time.time() - start_time
+                    if elapsed_time > limit_time:  
+                        raise TimeoutError(f'Timeout occurred after {limit_time} seconds')
+                    ended=False
+                    send_data = driver.execute_script(js_analyze)
+                    video_id = append_to_csv(send_data, counter)
+                    time.sleep(report_time)
+                    ended = driver.execute_script("return document.getElementsByTagName('video')[0].ended")                    
+                    if(ended):
+                        record_xhr_requests(driver, video_id, counter)
+                        har_data = proxy.har
+                        HAR_FILE_PATH = f'{data_path}/HAR/run_{run_label}_vid_{counter}_{video_id}.har'
+                        with open(HAR_FILE_PATH, 'w') as har_file:
+                            json.dump(har_data, har_file, indent=4)
+                        response = f"SUCCESS DURING Run #{run_label}, Video #{counter}, Mbps {rate}, Time {vidlength} sec"
+                        print(response)
+                        with open(log_path, 'a') as file:
+                            file.write(response+"\n")                 
+                        success+=1
+                        attempt=7
+                        break
+            except WebDriverException as e:
+                attempt+=1
+                print(f"WebDriverException occurred: {e}")
+                with open(log_path, 'a') as file:
+                    file.write(f"WebDriverException occurred during Run #{run_label}, Video #{counter}, MBPS #{rate}: {e.msg}\n")
+                    file.write(f"Retry occur, attempt {attempt}\n")
+                delete_csv_file(video_id, counter)  
+            except TimeoutError as e:
+                attempt+=1
+                print(f"TimeoutError occurred: {e}")
+                with open(log_path, 'a') as file:
+                    file.write(f"Timeout occurred during Run #{run_label}, Video #{counter}, MBPS #{rate}\n")
+                    file.write(f"Retry occur, attempt {attempt}\n")
+                delete_csv_file(video_id, counter)  
+            except Exception as e:
+                attempt+=1
+                print(f"NonLabeledException occurred: {e}")
+                with open(log_path, 'a') as file:
+                    file.write(f"NonLabeledException occurred during Run #{run_label}, Video #{counter}, MBPS #{rate}: {e.msg}\n")      
+                    file.write(f"Retry occur, attempt {attempt}\n")
+                delete_csv_file(video_id, counter)  
+            finally:
+                time.sleep(1)
+                driver.quit()
+                driver = initalize_webdriver(proxy)
+                if attempt == 6:
+                    print("Failure after 5 retrues Run #{run_label}, Video #{counter}, MBPS #{rate}")
                     with open(log_path, 'a') as file:
-                        file.write(response+"\n")                 
-                    success+=1
-                    break
-        except WebDriverException as e:
-            print(f"WebDriverException occurred: {e}")
-            with open(log_path, 'a') as file:
-                file.write(f"WebDriverException occurred during Run #{run_label}, Video #{counter}, MBPS #{rate}: {e.msg}\n")
-            delete_csv_file(video_id, counter)  
-        except Exception as e:
-            print(f"NonLabeledException occurred: {e}")
-            with open(log_path, 'a') as file:
-                file.write(f"NonLabeledException occurred during Run #{run_label}, Video #{counter}, MBPS #{rate}: {e.msg}\n")      
-            delete_csv_file(video_id, counter)           
-        finally:
-            time.sleep(1)
-            counter+=1
-            driver.quit()
-            driver = initalize_webdriver(proxy)
+                        file.write(f"FAIL DURING Run #{run_label}, Video #{counter}, Mbps {rate}, Time {vidlength} sec\n")
     print(f"Total Successful Attempts: {success} out of {counter} attemps")
+    driver.quit()
+    with open(log_path, 'a') as file:
+        file.write(f"Total Successful Attempts: {success} out of {counter} attemps\n")
