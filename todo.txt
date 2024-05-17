@@ -1,0 +1,4 @@
+See pre-fetching behavior for a typical tiktok base session
+Collect PCAP logs generally and test for 5Mbps for a couple links (3 links - 15seconds versus very long)
+One request vs DASH - look historically for past information
+Look into papers or stackoverflow, information retrieval for tiktok

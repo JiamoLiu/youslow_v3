@@ -1,38 +1,46 @@
-DATA_RATES=("1.1")
-TIKTOK_VIDEO_LENGTH=("15" "60")
-BASE_DIR="satellite_data_2"
+DATA_RATES=("5")
+TIKTOK_VIDEO_LENGTH=("test")
+# BASE_DIR="satellite_data"
 # BASE_DIR="tiktok_data_2"
-# BASE_DIR="testing"
+BASE_DIR="dataset"
+LOCATION="campus"
 
 mkdir -p "$BASE_DIR"
 
-for RUN_LABEL in {1..5}
+for LENGTH in "${TIKTOK_VIDEO_LENGTH[@]}"
 do
-    INITIAL_DIR="$BASE_DIR/$RUN_LABEL"
-    mkdir -p "$INITIAL_DIR"
-    echo "Starting Run: $RUN_LABEL"
-    for LENGTH in "${TIKTOK_VIDEO_LENGTH[@]}"
+    TIME_DIR="$BASE_DIR/$LENGTH"
+    mkdir -p "$TIME_DIR"
+    LOC_DIR="$TIME_DIR/$LOCATION"
+    mkdir -p "$LOC_DIR"
+    for RATE in "${DATA_RATES[@]}"
     do
-        echo "Current Length: $LENGTH Seconds"
-        CURRENT_DIR="$INITIAL_DIR/$LENGTH"
-        mkdir -p "$CURRENT_DIR"
-        for RATE in "${DATA_RATES[@]}"
+        TRACE_FILE="traces/${RATE}Mbps_trace"
+        RATE_DIR="$LOC_DIR/${RATE}Mbps"
+        mkdir -p "$RATE_DIR"
+        for RUN_LABEL in {1..5}
         do
-            TRACE_FILE="traces/${RATE}Mbps_trace"
-            RATE_DIR="$CURRENT_DIR/${RATE}Mbps"
-            mkdir -p "$RATE_DIR"
-            mkdir -p "$RATE_DIR/QoS"
-            mkdir -p "$RATE_DIR/QoE"
-            mkdir -p "$RATE_DIR/HAR"
-            # mm-link $TRACE_FILE $TRACE_FILE -- python3 tokgrab.py $RATE_DIR $LENGTH $RUN_LABEL $RATE $BASE_DIR
-            python3 tokgrab.py $RATE_DIR $LENGTH $RUN_LABEL $RATE $BASE_DIR
-            pkill java
+            for FIX in {1..2}
+            do
+                echo "Starting Run: $RUN_LABEL Part $FIX"
+                echo "Current Length: $LENGTH Seconds"
+                CURRENT_DIR="$RATE_DIR/$RUN_LABEL"
+                mkdir -p "$CURRENT_DIR"
+                mkdir -p "$CURRENT_DIR/QoS"
+                mkdir -p "$CURRENT_DIR/QoE"
+                mkdir -p "$CURRENT_DIR/HAR"
+                # mm-link $TRACE_FILE $TRACE_FILE -- python3 tokgrab.py $CURRENT_DIR $LENGTH $RUN_LABEL $RATE $BASE_DIR $LOCATION
+                PCAP_FILE="${CURRENT_DIR}/pcap_try${i}_${TIMESTAMP}.pcap"
+                tcpdump -w $PCAP_FILE -i any & 
+                TCPDUMP_PID=$!
+                
+                python3 tokgrab.py $CURRENT_DIR $LENGTH $RUN_LABEL $RATE $BASE_DIR $LOCATION
+                pkill java
+                pkill tcpdump
+            done
         done
+        echo "RUN FINISHED FOR $RATE at $LENGTH seconds"
     done
-    echo "Run: $RUN_LABEL Complete"
+    echo "ALL RUNS DONE FOR ALL RATES AT $LENGTH seconds"
 done
-
-
-
-
-
+echo "WE DONE"
