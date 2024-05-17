@@ -30,13 +30,9 @@ do
                 mkdir -p "$CURRENT_DIR/QoE"
                 mkdir -p "$CURRENT_DIR/HAR"
                 # mm-link $TRACE_FILE $TRACE_FILE -- python3 tokgrab.py $CURRENT_DIR $LENGTH $RUN_LABEL $RATE $BASE_DIR $LOCATION
-                PCAP_FILE="${CURRENT_DIR}/pcap_try${i}_${TIMESTAMP}.pcap"
-                tcpdump -w $PCAP_FILE -i any & 
-                TCPDUMP_PID=$!
                 
                 python3 tokgrab.py $CURRENT_DIR $LENGTH $RUN_LABEL $RATE $BASE_DIR $LOCATION
                 pkill java
-                pkill tcpdump
             done
         done
         echo "RUN FINISHED FOR $RATE at $LENGTH seconds"
