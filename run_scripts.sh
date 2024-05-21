@@ -25,14 +25,19 @@ do
                 echo "Starting Run: $RUN_LABEL Part $FIX"
                 echo "Current Length: $LENGTH Seconds"
                 CURRENT_DIR="$RATE_DIR/$RUN_LABEL"
+                # PCAP_FILE="${CURRENT_DIR}/PCAP/pcap_run_${RUN_LABEL}_type_${LENGTH}_${FIX}.pcap"
+                # sudo tcpdump -w $PCAP_FILE -i any & 
+                # TCPDUMP_PID=$!
                 mkdir -p "$CURRENT_DIR"
                 mkdir -p "$CURRENT_DIR/QoS"
                 mkdir -p "$CURRENT_DIR/QoE"
                 mkdir -p "$CURRENT_DIR/HAR"
+                mkdir -p "$CURRENT_DIR/PCAP"
                 # mm-link $TRACE_FILE $TRACE_FILE -- python3 tokgrab.py $CURRENT_DIR $LENGTH $RUN_LABEL $RATE $BASE_DIR $LOCATION
                 
                 python3 tokgrab.py $CURRENT_DIR $LENGTH $RUN_LABEL $RATE $BASE_DIR $LOCATION
                 pkill java
+                # kill $TCPDUMP_PID
             done
         done
         echo "RUN FINISHED FOR $RATE at $LENGTH seconds"

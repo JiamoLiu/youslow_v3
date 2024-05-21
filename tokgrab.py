@@ -32,7 +32,7 @@ base_dir = sys.argv[5] #file storage
 location = sys.argv[6]
 limit_time = 0
 if vidlength == "15" or vidlength == "test":
-    limit_time = 90
+    limit_time = 30
 elif vidlength == "60":
     limit_time = 180
 log_path = f"{base_dir}/{vidlength}/{location}/{rate}Mbps/{run_label}/log.txt"
@@ -59,43 +59,6 @@ def initalize_webdriver(proxy):
     driver = webdriver.Chrome(service=s, options=chrome_options)
     proxy.new_har("tiktok", options={'captureHeaders': True, 'captureContent': True})
     return driver
-
-def start_pcap_capture(index):
-    # Define the current directory
-    current_dir = os.getcwd()
-
-    # Get the timestamp
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-
-    # Define the PCAP file name
-    pcap_file = f"{current_dir}/pcap_try{index}_{timestamp}.pcap"
-
-    # Start tcpdump and write to the PCAP file
-    tcpdump_process = subprocess.Popen(["tcpdump", "-w", pcap_file, "-i", "any"])
-
-    # Get the process ID of tcpdump and save it to a file
-    tcpdump_pid = tcpdump_process.pid
-    with open("tcpdump_pid.txt", "w") as pid_file:
-        pid_file.write(str(tcpdump_pid))
-
-def stop_pcap_capture():
-    # Read the process ID from the file
-    try:
-        with open("tcpdump_pid.txt", "r") as pid_file:
-            tcpdump_pid = int(pid_file.read().strip())
-
-        # Terminate the tcpdump process
-        os.kill(tcpdump_pid, signal.SIGTERM)
-        print(f"tcpdump process with PID {tcpdump_pid} terminated.")
-        
-        # Optionally, remove the PID file after stopping the process
-        os.remove("tcpdump_pid.txt")
-    except FileNotFoundError:
-        print("Error: PID file not found. Is tcpdump running?")
-    except ProcessLookupError:
-        print("Error: Process not found. It might have already been stopped.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
 
 def read_urls_from_file(file_path):
     urls = []
@@ -132,7 +95,8 @@ def record_xhr_requests(driver, pcap_filename, proto):
 js_analyze = read_script(script_path)
 
 def append_to_csv(data, num):
-    video_id = re.search(r'(\d+)$', data['url']).group()
+    # video_id = re.search(r'(\d+)$', data['url']).group()
+    video_id = '12345'
     csv_file = f"{data_path}/QoE/run_{run_label}_vid_{num}_{video_id}.csv"
     df = pd.DataFrame(columns=data.keys())
     # Filter out empty or all-NA entries before concatenation
@@ -162,7 +126,6 @@ if __name__ == "__main__":
     counter = 0
     success = 0
     tiktok_urls = read_urls_from_file(vidlength)
-    print(vidlength)
     retry_attempt = 7
     with open(log_path, 'a') as file:
         file.write("Initalize"+"\n")
@@ -178,13 +141,14 @@ if __name__ == "__main__":
                 start_time = time.time()
                 while(True):
                     elapsed_time = time.time() - start_time
-                    if elapsed_time > limit_time:  
-                        raise TimeoutError(f'Timeout occurred after {limit_time} seconds')
                     ended=False
                     send_data = driver.execute_script(js_analyze)
                     video_id = append_to_csv(send_data, counter)
                     time.sleep(report_time)
                     ended = driver.execute_script("return document.getElementsByTagName('video')[0].ended")                    
+                    if elapsed_time > limit_time:  
+                        # raise TimeoutError(f'Timeout occurred after {limit_time} seconds')
+                        ended=True
                     if(ended):
                         record_xhr_requests(driver, video_id, counter)
                         har_data = proxy.har
