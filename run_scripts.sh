@@ -2,6 +2,7 @@ DATA_RATES=("5")
 TIKTOK_VIDEO_LENGTH=("test")
 # BASE_DIR="satellite_data"
 # BASE_DIR="tiktok_data_2"
+ewrewqrewqre
 BASE_DIR="dataset"
 LOCATION="campus"
 
