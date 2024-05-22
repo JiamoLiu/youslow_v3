@@ -6,7 +6,7 @@ LOC_DIR="$BASE_DIR/$LOCATION"
 mkdir -p "$LOC_DIR"
 for RATE in "${DATA_RATES[@]}"
 do
-    RATE_DIR="$LOC_DIR/$RATE"
+    RATE_DIR="$LOC_DIR/${RATE}Mbps"
     mkdir -p "$RATE_DIR"
     for RUN_LABEL in {1..10}
     do

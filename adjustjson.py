@@ -25,15 +25,14 @@ def remove_extra_newlines(input_file, output_file):
         file.write(formatted_json_str)
 
 
-folder_paths = ["dataset/15/campus/4Mbps"]
+folder_paths = ["database/campus/3Mbps/1"]
 
 
 for folder_path in folder_paths:
     for i in range(1, 3):
-        qos_folder = os.path.join(folder_path, str(i), "QoS")
-        for file_name in os.listdir(qos_folder):
+        for file_name in os.listdir(folder_path):
             if file_name.endswith(".json"):
-                json_file = os.path.join(qos_folder, file_name)
+                json_file = os.path.join(folder_path, file_name)
                 json_string_with_line_breaks = add_line_breaks(json_file)
                 with open(json_file, 'w') as file:
                     file.write(json_string_with_line_breaks)
