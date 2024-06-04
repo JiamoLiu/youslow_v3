@@ -1,4 +1,5 @@
-DATA_RATES=("3" "5")
+
+DATA_RATES=("3")
 BASE_DIR="database"
 LOCATION="campus"
 mkdir -p "$BASE_DIR"
@@ -8,7 +9,7 @@ for RATE in "${DATA_RATES[@]}"
 do
     RATE_DIR="$LOC_DIR/${RATE}Mbps"
     mkdir -p "$RATE_DIR"
-    for RUN_LABEL in {1..10}
+    for RUN_LABEL in {1..100}
     do
         TRACE_FILE="traces/${RATE}Mbps_trace"
         CURRENT_DIR="$RATE_DIR/$RUN_LABEL"
@@ -24,8 +25,8 @@ do
             echo "Running satellite test at rate $RATE Mbps, run $RUN_LABEL"
             python3 tokbase.py $BASE_DIR $LOCATION $RATE $RUN_LABEL $CURRENT_DIR
         fi
-
         pkill java
+        pkill -f "tcpdump -w $PCAP_FILE"
         kill $TCPDUMP_PID
         echo "Packet capture for $LOCATION at rate $RATE Mbps, run $RUN_LABEL complete."
         sleep 5

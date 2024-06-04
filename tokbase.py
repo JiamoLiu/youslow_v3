@@ -24,7 +24,7 @@ rate = sys.argv[3] #MBPS (3MBPS or 5MBPS)
 run_label = sys.argv[4] #Numbered Run 1-5?
 data_path = sys.argv[5] #Location of Specific Instance with QoE, QoS, PCAP and HAR
 log_path = f"{base_dir}/{location}/{rate}Mbps/{run_label}/log.txt"
-report_time = 15
+report_time = 60 #seconds
 
 def refresh_button_exists(driver, timeout=0.01):
     try:

@@ -2,3 +2,17 @@ See pre-fetching behavior for a typical tiktok base session
 Collect PCAP logs generally and test for 5Mbps for a couple links (3 links - 15seconds versus very long)
 One request vs DASH - look historically for past information
 Look into papers or stackoverflow, information retrieval for tiktok
+
+
+2 Slides on Introduction/Motivation - what is the problem solving, why is it important
+geosync satellite, statistic on tiktok usage, why does this matter
+15 minutes, how tiktok works, how we figured it out, fetching behavior, structure, lack of DASH
+8-10 minutes, analyze data and conclusion, ucsb vs satellite network compaison, 3 Mbps vs 5 Mbps
+
+
+Does Tiktok use constant birate encoding? I know the response size of a video, 
+I can therefore compute the playback bitrate of this video, do all videos have 
+similar playback bitrate?
+
+Does pre-fetching correlate to bandwidth. I can compute the number of prefetch 
+videos in the 60 seconds I collect, and I can simply count the average for each bandwidth
